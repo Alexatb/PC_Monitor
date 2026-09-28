@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, request
 import os
 import platform
 import socket
@@ -105,6 +105,20 @@ def status():
         "logical_processors": logical_processors,
         "uptime": uptime,
         "ip_address": ip_address
+    })
+
+
+# Receive PC information from PC Agent
+@app.route("/api/pc-status", methods=["POST"])
+def receive_pc_status():
+
+    data = request.get_json()
+
+    print("PC Agent data received:")
+    print(data)
+
+    return jsonify({
+        "message": "PC status received successfully"
     })
 
 
