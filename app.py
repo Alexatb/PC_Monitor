@@ -8,6 +8,8 @@ import ctypes
 
 app = Flask(__name__)
 
+latest_pc_status = {}
+
 
 @app.route("/")
 def home():
@@ -82,7 +84,7 @@ def status():
     hostname = socket.gethostname()
     ip_address = socket.gethostbyname(hostname)
 
-    # Return all PC information as JSON
+    # Return local server information
     return jsonify({
         "cpu": cpu,
 
@@ -112,14 +114,25 @@ def status():
 @app.route("/api/pc-status", methods=["POST"])
 def receive_pc_status():
 
+    global latest_pc_status
+
     data = request.get_json()
 
+    latest_pc_status = data
+
     print("PC Agent data received:")
-    print(data)
+    print(latest_pc_status)
 
     return jsonify({
         "message": "PC status received successfully"
     })
+
+
+# Return the latest information from the user's PC
+@app.route("/api/my-pc")
+def my_pc():
+
+    return jsonify(latest_pc_status)
 
 
 # Lock the PC
