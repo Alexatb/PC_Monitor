@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 
@@ -89,8 +90,6 @@
             font-size: 14px;
         }
 
-        /* Process list */
-
         .process-card {
             margin-top: 20px;
         }
@@ -114,8 +113,6 @@
         .process-memory {
             color: #666;
         }
-
-        /* Power buttons */
 
         .power-card {
             margin-top: 20px;
@@ -163,9 +160,7 @@
 
 </head>
 
-
 <body>
-
 
     <!-- HEADER -->
 
@@ -198,22 +193,22 @@
 
                 <p>
                     <strong>Windows:</strong>
-                    <span id="windows-version">Loading...</span>
+                    <span id="windows-version">Not available yet</span>
                 </p>
 
                 <p>
                     <strong>CPU:</strong>
-                    <span id="cpu-model">Loading...</span>
+                    <span id="cpu-model">Not available yet</span>
                 </p>
 
                 <p>
                     <strong>Cores:</strong>
-                    <span id="cpu-cores">Loading...</span>
+                    <span id="cpu-cores">Not available yet</span>
                 </p>
 
                 <p>
                     <strong>Uptime:</strong>
-                    <span id="uptime">Loading...</span>
+                    <span id="uptime">Not available yet</span>
                 </p>
 
                 <p>
@@ -330,7 +325,7 @@
 
             <div id="process-list">
 
-                Loading...
+                Waiting for PC Agent data...
 
             </div>
 
@@ -343,23 +338,24 @@
 
             <h2>⚡ Power</h2>
 
-
-            <!-- LOCK -->
+            <!--
+                IMPORTANT:
+                These buttons are currently disabled from remote use.
+                We will connect them to the PC Agent securely later.
+            -->
 
             <button
-                onclick="lockPC()"
-                class="lock-button">
+                class="lock-button"
+                onclick="lockPC()">
 
                 🔒 Lock PC
 
             </button>
 
 
-            <!-- SHUTDOWN -->
-
             <button
-                onclick="shutdownPC()"
-                class="shutdown-button">
+                class="shutdown-button"
+                onclick="shutdownPC()">
 
                 🔴 Shutdown PC
 
@@ -380,41 +376,9 @@
 
         async function lockPC() {
 
-            const confirmed = confirm(
-                "Are you sure you want to lock the PC?"
+            alert(
+                "Remote PC control will be connected after authentication is added."
             );
-
-            if (!confirmed) {
-                return;
-            }
-
-            try {
-
-                const response = await fetch(
-                    "/lock",
-                    {
-                        method: "POST"
-                    }
-                );
-
-                const data = await response.json();
-
-                console.log(data.message);
-
-            }
-
-            catch (error) {
-
-                console.log(
-                    "Lock error:",
-                    error
-                );
-
-                alert(
-                    "Unable to lock the PC."
-                );
-
-            }
 
         }
 
@@ -425,41 +389,9 @@
 
         async function shutdownPC() {
 
-            const confirmed = confirm(
-                "Are you sure you want to shut down the PC?"
+            alert(
+                "Remote PC control will be connected after authentication is added."
             );
-
-            if (!confirmed) {
-                return;
-            }
-
-            try {
-
-                const response = await fetch(
-                    "/shutdown",
-                    {
-                        method: "POST"
-                    }
-                );
-
-                const data = await response.json();
-
-                console.log(data.message);
-
-            }
-
-            catch (error) {
-
-                console.log(
-                    "Shutdown error:",
-                    error
-                );
-
-                alert(
-                    "Unable to shut down the PC."
-                );
-
-            }
 
         }
 
@@ -472,11 +404,27 @@
 
             try {
 
+                // Get REAL PC data from PC Agent
+
                 const response =
-                    await fetch("/api/status");
+                    await fetch("/api/my-pc");
 
                 const data =
                     await response.json();
+
+
+                // Check if PC Agent has sent data
+
+                if (!data || Object.keys(data).length === 0) {
+
+                    document.getElementById(
+                        "computer-name"
+                    ).textContent =
+                        "Waiting for PC Agent...";
+
+                    return;
+
+                }
 
 
                 // =========================
@@ -486,84 +434,95 @@
                 document.getElementById(
                     "computer-name"
                 ).textContent =
-                    data.computer_name;
+                    data.computer_name || "Unknown";
 
 
                 document.getElementById(
                     "windows-version"
                 ).textContent =
-                    data.windows_version;
+                    data.windows_version || "Not available yet";
 
 
                 document.getElementById(
                     "cpu-model"
                 ).textContent =
-                    data.cpu_model;
+                    data.cpu_model || "Not available yet";
 
 
-                document.getElementById(
-                    "cpu-cores"
-                ).textContent =
+                if (
+                    data.physical_cores !== undefined &&
+                    data.logical_processors !== undefined
+                ) {
 
-                    data.physical_cores +
-                    " physical / " +
+                    document.getElementById(
+                        "cpu-cores"
+                    ).textContent =
+                        data.physical_cores +
+                        " physical / " +
+                        data.logical_processors +
+                        " logical";
 
-                    data.logical_processors +
-                    " logical";
+                }
 
 
                 document.getElementById(
                     "uptime"
                 ).textContent =
-                    data.uptime;
+                    data.uptime || "Not available yet";
 
 
                 document.getElementById(
                     "ip-address"
                 ).textContent =
-                    data.ip_address;
+                    data.ip_address || "Unknown";
 
 
                 // =========================
                 // CPU
                 // =========================
 
+                const cpu =
+                    Number(data.cpu) || 0;
+
                 document.getElementById(
                     "cpu"
                 ).textContent =
-                    data.cpu + "%";
+                    cpu + "%";
 
 
                 document.getElementById(
                     "cpu-bar"
                 ).style.width =
-                    data.cpu + "%";
+                    Math.min(cpu, 100) + "%";
 
 
                 // =========================
                 // RAM
                 // =========================
 
+                const ram =
+                    Number(data.ram) || 0;
+
                 document.getElementById(
                     "ram"
                 ).textContent =
-                    data.ram + "%";
+                    ram + "%";
 
 
                 document.getElementById(
                     "ram-bar"
                 ).style.width =
-                    data.ram + "%";
+                    Math.min(ram, 100) + "%";
 
 
                 document.getElementById(
                     "ram-details"
                 ).textContent =
 
-                    data.ram_used +
+                    (data.ram_used || 0) +
                     " GB / " +
 
-                    data.ram_total +
+                    (data.ram_total || 0) +
                     " GB";
 
 
@@ -571,26 +530,29 @@
                 // DISK
                 // =========================
 
+                const disk =
+                    Number(data.disk) || 0;
+
                 document.getElementById(
                     "disk"
                 ).textContent =
-                    data.disk + "%";
+                    disk + "%";
 
 
                 document.getElementById(
                     "disk-bar"
                 ).style.width =
-                    data.disk + "%";
+                    Math.min(disk, 100) + "%";
 
 
                 document.getElementById(
                     "disk-details"
                 ).textContent =
 
-                    data.disk_used +
+                    (data.disk_used || 0) +
                     " GB / " +
 
-                    data.disk_total +
+                    (data.disk_total || 0) +
                     " GB";
 
 
@@ -607,43 +569,51 @@
                 processList.innerHTML = "";
 
 
-                data.processes.forEach(
-                    function (process) {
+                if (
+                    data.processes &&
+                    Array.isArray(data.processes) &&
+                    data.processes.length > 0
+                ) {
 
-                        const processElement =
-                            document.createElement(
-                                "div"
-                            );
+                    data.processes.forEach(
+                        function (process) {
+
+                            const processElement =
+                                document.createElement(
+                                    "div"
+                                );
 
 
-                        processElement.className =
-                            "process";
+                            processElement.className =
+                                "process";
 
 
-                        processElement.innerHTML =
-                            `
+                            processElement.innerHTML = `
 
-                            <span class="process-name">
+                                <span class="process-name">
+                                    ${process.name}
+                                </span>
 
-                                ${process.name}
-
-                            </span>
-
-                            <span class="process-memory">
-
-                                ${process.memory} MB
-
-                            </span>
+                                <span class="process-memory">
+                                    ${process.memory} MB
+                                </span>
 
                             `;
 
 
-                        processList.appendChild(
-                            processElement
-                        );
+                            processList.appendChild(
+                                processElement
+                            );
 
-                    }
-                );
+                        }
+                    );
+
+                } else {
+
+                    processList.textContent =
+                        "Process information will appear after the PC Agent is updated.";
+
+                }
 
             }
 
@@ -655,29 +625,7 @@
                     error
                 );
 
-            }
-
-        }
-
-
-        // =========================
-        // START MONITORING
-        // =========================
-
-        updateMonitor();
-
-
-        // Update every 2 seconds
-
-        setInterval(
-            updateMonitor,
-            2000
-        );
-
-
-    </script>
-
-
-</body>
-
-</html>
+                document.getElementById(
+                    "computer-name"
+                ).textCon
+```
