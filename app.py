@@ -9,6 +9,7 @@ import ctypes
 app = Flask(__name__)
 
 latest_pc_status = {}
+pending_command = "none"
 
 
 @app.route("/")
@@ -129,10 +130,30 @@ def receive_pc_status():
 
 
 # Return the latest information from the user's PC
-@app.route("/api/command")
-def get_command():
-    return jsonify({"command": "none"})
+@app.route("/api/command", methods=["GET", "POST"])
+def command():
 
+    global pending_command
+
+    if request.method == "POST":
+
+        data = request.get_json()
+
+        if data and data.get("command") == "lock":
+            pending_command = "lock"
+
+        return jsonify({
+            "message": "Command received",
+            "command": pending_command
+        })
+
+    command_to_send = pending_command
+
+    pending_command = "none"
+
+    return jsonify({
+        "command": command_to_send
+    })
 
 # Lock the PC
 @app.route("/lock", methods=["POST"])
