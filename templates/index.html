@@ -373,13 +373,42 @@
         // LOCK PC
         // =========================
 
-        async function lockPC() {
+       ```javascript
+async function lockPC() {
 
-            alert(
-                "Remote PC control will be connected after authentication is added."
-            );
+    if (!confirm("Are you sure you want to lock your PC?")) {
+        return;
+    }
 
+    try {
+
+        const response = await fetch("/api/command", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                command: "lock"
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            alert("Lock command sent to your PC.");
+        } else {
+            alert("Failed to send lock command.");
         }
+
+    } catch (error) {
+
+        console.error("Lock error:", error);
+        alert("Could not connect to the PC control service.");
+
+    }
+}
+```
+
 
 
         // =========================
