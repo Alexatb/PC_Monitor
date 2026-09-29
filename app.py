@@ -129,10 +129,9 @@ def receive_pc_status():
 
 
 # Return the latest information from the user's PC
-@app.route("/api/my-pc")
-def my_pc():
-
-    return jsonify(latest_pc_status)
+@app.route("/api/command")
+def get_command():
+    return jsonify({"command": "none"})
 
 
 # Lock the PC
